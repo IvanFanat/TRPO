@@ -60,7 +60,7 @@ export class AuthController {
     }
 
     const user = this.repository.create(title, email, hash);
-    const token = await createJWT(String(user?.id), JWT_SECRET);
+    const token = await createJWT(JWT_SECRET, String(user?.id));
 
     return c.json({ success: true, data: { token } });
   }
@@ -84,7 +84,7 @@ export class AuthController {
       return c.json({ success: false, error: "Bad authentication" }, 401);
     }
 
-    const token = await createJWT(String(user?.id), JWT_SECRET);
+    const token = await createJWT(JWT_SECRET, String(user?.id));
 
     return c.json({ success: true, data: { token } });
   }
@@ -104,7 +104,7 @@ export class AuthController {
       return;
     }
 
-    if (header.length !== 0 || header[0] !== "Bearer") {
+    if (header.length !== 2 || header[0] !== "Bearer") {
       return c.json({ success: false, error: "BAD AUTH" }, 401);
     }
 

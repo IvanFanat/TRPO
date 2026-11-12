@@ -7,7 +7,7 @@ import {
   type IDParamType,
 } from "../application.types";
 import { type UserType } from "./users.type";
-import { ApplicationValidator } from "../application.validator";
+import { ApplicationValidator } from "../application.validator"
 
 export class UsersController {
   private readonly repository: UsersRepository;

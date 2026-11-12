@@ -1,29 +1,31 @@
-import { Hono } from "hono";
-import { UsersModule } from "./users/users.module";
-import { Database } from "bun:sqlite";
+import z from "zod";
+import type { UserType } from "./users/users.type";
 
-export class ApplicationModule {
-  private readonly server: Hono;
-  private readonly database: Database;
-  private readonly users: UsersModule;
+export type ApplicationEnviroment = {
+    Bindings: {
+        JWT_SECRET: string;
+    }
 
-  constructor() {
-    this.server = new Hono();
-    this.database = new Database("platform.sqlite");
-    this.users = new UsersModule(this.database);
-  }
+    Variables: {
+        user: UserType;
+    };
+};
 
-  public init(): ApplicationModule {
-    const { authRouter, usersRouter, validate } = this.users.init();
+export type ApplicationResult<T> = ApplicationSuccessResult<T> | ApplicationFailedResult;
 
-    this.server.use('*', validate);
-    this.server.route("/api/users", usersRouter);
-    this.server.route("/api/auth", authRouter);
-
-    return this;
-  }
-
-  public start(): Hono {
-    return this.server;
-  }
+export type ApplicationSuccessResult<T> = {
+    success: true;
+    data: T;
 }
+
+export type ApplicationFailedResult = {
+    success: false;
+    error: string;
+}
+
+export const IDParamSchema = z.object({
+    id: z.string().regex(/^\d+$/, "ID must be number")
+    .transform(value =>  parseInt(value, 10)),
+});
+
+export type IDParamType = z.infer<typeof IDParamSchema>;
