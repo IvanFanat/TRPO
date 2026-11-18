@@ -1,7 +1,7 @@
 import { Context, Hono, type Next, type TypedResponse } from "hono";
 import { env } from "hono/adapter";
 import type { UsersRepository } from "./users.repository";
-import type {
+import {
   ApplicationEnviroment,
   ApplicationResult,
 } from "../application.types";
@@ -14,7 +14,7 @@ import {
   type UserType,
 } from "./users.type";
 import { createJWT } from "../../utils/jwt";
-import { decode } from "hono/jwt";
+import { decode, verify } from "hono/jwt";
 import { ApplicationValidator } from "../application.validator";
 
 export class AuthController {
@@ -98,6 +98,7 @@ export class AuthController {
   public async validate(c: Context<ApplicationEnviroment>, next: Next) {
     const path = c.req.path;
     const header = (c.req.header("Authorization") ?? "").split(" ");
+    const { JWT_SECRET } = env<ApplicationEnviroment["Bindings"]>(c);
 
     if (path.startsWith("/api/auth/register") || path.startsWith("/api/auth/auth")) {
       await next();
@@ -108,16 +109,21 @@ export class AuthController {
       return c.json({ success: false, error: "BAD AUTH" }, 401);
     }
 
-    const { payload } = decode(header?.[1] ?? "");
-    const userId = Number(payload.sub);
-    const user = this.repository.findById(userId);
+    try {
+      const payload = await verify(header?.[1] ?? "", JWT_SECRET, "HS256");
+      const userId = Number(payload.sub);
+      const user = this.repository.findById(userId);
 
-    if (!user) {
-      return c.json({ success: false, error: "BAD AUTH" }, 401);
+      if (!user) {
+        return c.json({ success: false, error: "BAD AUTH" }, 401);
+      }
+
+      c.set("user", user);
+
+      await next();
+    } catch {
+      return c.json({ success: false, error: "BAD AUTH" })
     }
 
-    c.set("user", user);
-
-    await next();
   }
 }

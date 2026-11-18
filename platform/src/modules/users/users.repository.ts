@@ -10,7 +10,7 @@ export class UsersRepository {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         email TEXT NOT NULL,
-        hash TEXT NOT NULL
+        password TEXT NOT NULL
       );
     `);
   }
@@ -31,12 +31,12 @@ export class UsersRepository {
       .get(email.toLowerCase().trim());
   }
 
-  public create(title: string, email: string, hash: string): UserType | null {
+  public create(title: string, email: string, password: string): UserType | null {
     return this.database
       .query<
         UserType,
         string[]
-      >("INSERT INTO users (title, email, hash) VALUES (?, ?, ?) RETURNING id, title, email")
-      .get(title, email.toLowerCase().trim(), hash);
+      >("INSERT INTO users (title, email, password) VALUES (?, ?, ?) RETURNING id, title, email")
+      .get(title, email.toLowerCase().trim(), password);
   }
 }
