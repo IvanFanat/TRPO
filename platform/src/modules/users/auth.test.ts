@@ -11,11 +11,11 @@ import { userSchema, userTokenSchema } from "./users.type";
 const bindings = { JWT_SECRET: "test-jwt-secret" };
 
 //sample data
-const account ={
-            title: "TEST_USER_01",
-            email: "test-user-01@nke.ru",
-            password: "12345678",
-        };
+const account = {
+    title: "TEST_USER_01",
+    email: "test-user-01@nke.ru",
+    password: "12345678",
+};
 
 // schema
 const tokenResponseSchema = z.object({
@@ -59,14 +59,14 @@ describe("Авторизация", () => {
         });
     });
 
-    test("повторная регистрация возвращает 409", async () =>{
+    test("повторная регистрация возвращает 409", async () => {
         await client.post("/api/auth/register", account);
         const response = await client.post("/api/auth/register", account);
 
         expect(response.status).toBe(409);
     });
 
-    test("вход с правильными данными возвращает токен", async () =>{
+    test("вход с правильными данными возвращает токен", async () => {
         await client.post("/api/auth/register", account);
 
         const response = await client.post("/api/auth/auth", {
@@ -82,7 +82,7 @@ describe("Авторизация", () => {
         expect(profile.status).toBe(200);
         expect(await profile.json()).toMatchObject({
             success: true,
-            data:{
+            data: {
                 id: expect.any(Number),
                 title: account.title,
                 email: account.email,
@@ -95,10 +95,13 @@ describe("Авторизация", () => {
 
         const response = await client.post("/api/auth/auth", {
             email: account.email,
-            password: "wrong-password",
+            password: "ijsvbiw"
         });
 
-    expect(response.status).toBe(401);
+        expect(response.status).toBe(401);
+        expect(await response.json()).toMatchObject({
+            success: false,
+        });
     });
 
     test("без токена возвращает 401", async () => {

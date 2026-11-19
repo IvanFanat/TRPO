@@ -122,7 +122,7 @@ export class AuthController {
 
       await next();
     } catch {
-      return c.json({ success: false, error: "BAD AUTH" })
+      return c.json({ success: false, error: "BAD AUTH" }, 401)
     }
 
   }
